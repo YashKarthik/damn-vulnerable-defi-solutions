@@ -26,6 +26,14 @@ describe('[Challenge] Side entrance', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+            
+        /** Attempt 1
+         * Our attack smart contract will take the flashloan and send the received ether to the deposit() function.
+         * The deposit() function will "assign" that ether in our name, enabling us to withdraw() it, but lets us bypass the post-flashloan check.
+         * Since we deposited, the address(this).balance of the smart contract will return the initial amount it owned, but all that eth is in our name thanks to deposit().
+         */
+        const attacker = await (await ethers.getContractFactory('AttackSideEntrance', player)).deploy(pool.address);
+        await attacker.attack();
     });
 
     after(async function () {
